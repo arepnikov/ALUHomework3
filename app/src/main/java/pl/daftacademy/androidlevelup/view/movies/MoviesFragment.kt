@@ -22,26 +22,19 @@ class MoviesFragment : Fragment() {
             inflater.inflate(R.layout.fragment_movies, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val filterByGenre = arguments?.getString(FILTER_BY_GENRE)
+        val filterByGenre = arguments?.getString(FILTER_BY_GENRE)?.toLowerCase()
         recyclerView.adapter = adapter
-        val allMoviesList = viewModel.getMovies()
 
-        if (filterByGenre != null)
-            adapter.items = allMoviesList.filter { it.genres.any { it == filterByGenre } }
-        else
-            adapter.items = allMoviesList
+        adapter.items = viewModel.getMovies().run {
+            if (filterByGenre == null)
+                this
+            else
+                filter { it.genres.any { it.toLowerCase() == filterByGenre } }
+        }
     }
 
     companion object {
-        fun create(page: Page): MoviesFragment {
-            val fragment = MoviesFragment()
-            val args = Bundle()
-
-            if (page.filterBy != null) args.putString(FILTER_BY_GENRE, page.filterBy)
-
-            fragment.arguments = args
-
-            return fragment
-        }
+        fun create(page: Page): MoviesFragment =
+            MoviesFragment().apply { arguments = Bundle().apply { putString(FILTER_BY_GENRE, page.filterBy) } }
     }
 }
